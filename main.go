@@ -3,11 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
-	"slices"
-	"strconv"
-	"strings"
 )
 
 func main() {
@@ -20,20 +16,18 @@ func main() {
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
 
-	currentCardCounts := map[int]int{}
 	for fileScanner.Scan() {
-		cardCounts := cardCount42(fileScanner.Text(), currentCardCounts)
-		currentCardCounts = cardCounts
+		fmt.Println(fileScanner.Text())
 	}
 
-	sum := 0
-	for _, v := range currentCardCounts {
-		sum += v
-	}
-
-	fmt.Println("final sum =", sum)
+	fmt.Println("list distance =", getListDistance())
 }
 
+func getListDistance() int {
+	return 0
+}
+
+/*
 func cardCount42(s string, currentCardCounts map[int]int) map[int]int {
 	game := strings.Split(s, ":")
 	if len(game) != 2 {
@@ -109,3 +103,4 @@ func getCardScore41(s string) int {
 
 	return score
 }
+*/

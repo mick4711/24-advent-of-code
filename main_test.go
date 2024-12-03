@@ -1,10 +1,17 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 )
 
+func TestGetListDistance(t *testing.T) {
+	listDistance := getListDistance()
+	if listDistance != 11 {
+		t.Errorf("list distance, got:%v, want:%v", listDistance, 13)
+	}
+}
+
+/*
 func TestGetPartNo41(t *testing.T) {
 	var tests = []struct {
 		input string
@@ -65,3 +72,4 @@ func TestCardCount42(t *testing.T) {
 	}
 
 }
+*/
