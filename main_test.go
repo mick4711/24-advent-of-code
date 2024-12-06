@@ -4,72 +4,42 @@ import (
 	"testing"
 )
 
-func TestGetListDistance(t *testing.T) {
-	listDistance := getListDistance()
-	if listDistance != 11 {
-		t.Errorf("list distance, got:%v, want:%v", listDistance, 13)
+func TestParseNums(t *testing.T) {
+	tests := []struct {
+		line      string
+		left      []int
+		right     []int
+		wantLeft  []int
+		wantRight []int
+	}{
+		{"3    4", []int{}, []int{}, []int{3}, []int{4}},
+		{"3    4", []int{1}, []int{2}, []int{1, 3}, []int{2, 4}},
+	}
+
+	for _, test := range tests {
+		gotLeft, gotRight := parseNums(test.line, test.left, test.right)
+		for i := range gotLeft {
+			if gotLeft[i] != test.wantLeft[i] || gotRight[i] != test.wantRight[i] {
+				t.Errorf("parseNums(%v, %v, %v), got:%v, %v, want:%v,%v", test.line, test.left, test.right,
+					gotLeft[i], gotRight[i], test.wantLeft[i], test.wantRight[i])
+			}
+		}
 	}
 }
 
-/*
-func TestGetPartNo41(t *testing.T) {
-	var tests = []struct {
-		input string
+func TestGetListDistance(t *testing.T) {
+	tests := []struct {
+		left  []int
+		right []int
 		want  int
 	}{
-		{"", 0},
-		{"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53", 8},
-		{"Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19", 2},
-		{"Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1", 2},
-		{"Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83", 1},
-		{"Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36", 0},
-		{"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11", 0},
+		{[]int{3, 4, 2, 1, 3, 3}, []int{4, 3, 5, 3, 9, 3}, 11},
 	}
 
-	sum := 0
 	for _, test := range tests {
-		got := getCardScore41(test.input)
+		got := getListDistance(test.left, test.right)
 		if got != test.want {
-			t.Errorf("getCardScore41(%v), got:%v, want:%v", test.input, got, test.want)
-		}
-		sum += got
-	}
-	if sum != 13 {
-		t.Errorf("sum of card scores, got:%v, want:%v", sum, 13)
-	}
-
-}
-
-func TestCardCount42(t *testing.T) {
-	var tests = []struct {
-		input string
-		want  map[int]int
-	}{
-		{"", map[int]int{}},
-		{"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53", map[int]int{1: 1, 2: 1, 3: 1, 4: 1, 5: 1}},
-		{"Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19", map[int]int{1: 1, 2: 2, 3: 3, 4: 3, 5: 1}},
-		{"Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1", map[int]int{1: 1, 2: 2, 3: 4, 4: 7, 5: 5}},
-		{"Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83", map[int]int{1: 1, 2: 2, 3: 4, 4: 8, 5: 13}},
-		{"Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36", map[int]int{1: 1, 2: 2, 3: 4, 4: 8, 5: 14}},
-		{"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11", map[int]int{1: 1, 2: 2, 3: 4, 4: 8, 5: 14, 6: 1}},
-	}
-
-	currentCardCounts := map[int]int{}
-	for _, test := range tests {
-		got := cardCount42(test.input, currentCardCounts)
-		currentCardCounts = got
-		if !reflect.DeepEqual(got, test.want) {
-			t.Errorf("cardCount42(%v), got:%v, want:%v", test.input, got, test.want)
+			t.Errorf("getListDistance(%v, %v), got:%v, want:%v", test.left, test.right, got, test.want)
 		}
 	}
-
-	sum := 0
-	for _, v := range currentCardCounts {
-		sum += v
-	}
-	if sum != 30 {
-		t.Errorf("sum of card counts, got:%v, want:%v", sum, 30)
-	}
-
 }
-*/

@@ -6,3 +6,11 @@ login with google
 ```
 go build -o bin/ .
 ```
+
+## run
+```
+go run . -test=false
+```
+test flag used to set input file, defaults to test file
+## Answer
+Day 1.1 = 1320851
