@@ -4,59 +4,23 @@ import (
 	"testing"
 )
 
-func TestParseNums(t *testing.T) {
+func TestIsSafeReport(t *testing.T) {
 	tests := []struct {
-		line      string
-		left      []int
-		right     []int
-		wantLeft  []int
-		wantRight []int
+		report string
+		want   bool
 	}{
-		{"3    4", []int{}, []int{}, []int{3}, []int{4}},
-		{"3    4", []int{1}, []int{2}, []int{1, 3}, []int{2, 4}},
+		{"7 6 4 2 1", true},
+		{"1 2 7 8 9", false},
+		{"9 7 6 2 1", false},
+		{"1 3 2 4 5", false},
+		{"8 6 4 4 1", false},
+		{"1 3 6 7 9", true},
 	}
 
 	for _, test := range tests {
-		gotLeft, gotRight := parseNums(test.line, test.left, test.right)
-		for i := range gotLeft {
-			if gotLeft[i] != test.wantLeft[i] || gotRight[i] != test.wantRight[i] {
-				t.Errorf("parseNums(%v, %v, %v), got:%v, %v, want:%v,%v", test.line, test.left, test.right,
-					gotLeft[i], gotRight[i], test.wantLeft[i], test.wantRight[i])
-			}
-		}
-	}
-}
-
-func TestGetListDistance(t *testing.T) {
-	tests := []struct {
-		left  []int
-		right []int
-		want  int
-	}{
-		{[]int{3, 4, 2, 1, 3, 3}, []int{4, 3, 5, 3, 9, 3}, 11},
-	}
-
-	for _, test := range tests {
-		got := getListDistance(test.left, test.right)
+		got := isSafeReport(test.report)
 		if got != test.want {
-			t.Errorf("getListDistance(%v, %v), got:%v, want:%v", test.left, test.right, got, test.want)
-		}
-	}
-}
-
-func TestGetSimilarityScore(t *testing.T) {
-	tests := []struct {
-		left  []int
-		right []int
-		want  int
-	}{
-		{[]int{3, 4, 2, 1, 3, 3}, []int{4, 3, 5, 3, 9, 3}, 31},
-	}
-
-	for _, test := range tests {
-		got := getSimilarityScore(test.left, test.right)
-		if got != test.want {
-			t.Errorf("getSimilarityScore(%v, %v), got:%v, want:%v", test.left, test.right, got, test.want)
+			t.Errorf("isSafeReport(%v), got:%v, want:%v", test.report, got, test.want)
 		}
 	}
 }
