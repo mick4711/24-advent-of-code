@@ -6,13 +6,38 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
 
 func main() {
 	// set input file name
+	inputFileName := getInputFileName()
+
+	// read input file
+	readFile, err := os.Open(inputFileName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer readFile.Close()
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+
+	// initialise safe counter
+	safeReports := 0
+
+	// iterate input lines checking for safe
+	for fileScanner.Scan() {
+		if isSafeReport(fileScanner.Text()) {
+			safeReports++
+		}
+	}
+
+	fmt.Println("safe reports count =", safeReports)
+}
+
+func getInputFileName() string {
 	var inputFile string
 
 	testFlag := flag.Bool("test", true, "test flag")
@@ -26,92 +51,70 @@ func main() {
 		inputFile = "input.txt"
 	}
 
-	// read input file
-	readFile, err := os.Open(inputFile)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer readFile.Close()
-
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-
-	// initialise slices to hold left and right int values
-	left := []int{}
-	right := []int{}
-
-	// iterate input lines and parse out left and right int values into slices
-	for fileScanner.Scan() {
-		s := fileScanner.Text()
-		left, right = parseNums(s, left, right)
-	}
-
-	sim := getSimilarityScore(left, right)
-
-	fmt.Println("similarity score =", sim)
+	return inputFile
 }
 
-// Parse the left and right numbers out of the string and append them to the corresponding laft and right slices
-func parseNums(s string, left, right []int) (leftRes, rightRes []int) {
-	// get the 2 string numbers from the string
+// Parse the numbers out of the string and check for montonic sequence with diff limits
+func isSafeReport(s string) bool {
+	const (
+		maxDiff = 3
+		minDiff = 1
+	)
+	// get the string numbers from the string
 	nums := strings.Fields(s)
 
-	// convert 1st string and append to left slice
-	iLeft, err := strconv.Atoi(nums[0])
+	first, err := strconv.Atoi(nums[0])
 	if err != nil {
 		panic(err)
 	}
 
-	left = append(left, iLeft)
-
-	// convert 2nd string and append to right slice
-	iRight, err := strconv.Atoi(nums[1])
+	second, err := strconv.Atoi(nums[1])
 	if err != nil {
 		panic(err)
 	}
 
-	right = append(right, iRight)
+	var increasing, decreasing bool
 
-	return left, right
-}
-
-// sort the left and right slices and accumulate the absolute difference values
-func getListDistance(left, right []int) int {
-	slices.Sort(left)
-	slices.Sort(right)
-
-	var dist int
-
-	for i := range len(left) {
-		diff := left[i] - right[i]
-		if diff < 0 {
-			diff = -diff
+	switch {
+	case first < second:
+		if second-first > maxDiff {
+			return false
 		}
 
-		dist += diff
-	}
-
-	return dist
-}
-
-func getSimilarityScore(left, right []int) int {
-	// get the grouped counts for numbers in right into a map [int]int
-	rightCounts := make(map[int]int)
-	curr := right[0]
-
-	for _, v := range right {
-		if v != curr {
-			curr = v
+		increasing = true
+	case first > second:
+		if first-second > maxDiff {
+			return false
 		}
 
-		rightCounts[curr]++
+		decreasing = true
+	default: // not increasing or decreasing => not safe
+		return false
 	}
 
-	// iterate through left and accumulate counts*key
-	sim := 0
-	for _, v := range left {
-		sim += v * rightCounts[v]
+	prev := second
+
+	for i := 2; i < len(nums); i++ {
+		curr, err := strconv.Atoi(nums[i])
+		if err != nil {
+			panic(err)
+		}
+
+		diff := 0
+
+		switch {
+		case increasing:
+			diff = curr - prev
+		case decreasing:
+			diff = prev - curr
+		}
+
+		if diff > maxDiff || diff < minDiff {
+			return false
+		}
+
+		prev = curr
 	}
 
-	return sim
+	return true
 }
