@@ -43,3 +43,20 @@ func TestGetListDistance(t *testing.T) {
 		}
 	}
 }
+
+func TestGetSimilarityScore(t *testing.T) {
+	tests := []struct {
+		left  []int
+		right []int
+		want  int
+	}{
+		{[]int{3, 4, 2, 1, 3, 3}, []int{4, 3, 5, 3, 9, 3}, 31},
+	}
+
+	for _, test := range tests {
+		got := getSimilarityScore(test.left, test.right)
+		if got != test.want {
+			t.Errorf("getSimilarityScore(%v, %v), got:%v, want:%v", test.left, test.right, got, test.want)
+		}
+	}
+}

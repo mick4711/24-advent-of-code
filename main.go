@@ -46,9 +46,9 @@ func main() {
 		left, right = parseNums(s, left, right)
 	}
 
-	dist := getListDistance(left, right)
+	sim := getSimilarityScore(left, right)
 
-	fmt.Println("dist =", dist)
+	fmt.Println("similarity score =", sim)
 }
 
 // Parse the left and right numbers out of the string and append them to the corresponding laft and right slices
@@ -92,4 +92,26 @@ func getListDistance(left, right []int) int {
 	}
 
 	return dist
+}
+
+func getSimilarityScore(left, right []int) int {
+	// get the grouped counts for numbers in right into a map [int]int
+	rightCounts := make(map[int]int)
+	curr := right[0]
+
+	for _, v := range right {
+		if v != curr {
+			curr = v
+		}
+
+		rightCounts[curr]++
+	}
+
+	// iterate through left and accumulate counts*key
+	sim := 0
+	for _, v := range left {
+		sim += v * rightCounts[v]
+	}
+
+	return sim
 }
