@@ -2,12 +2,32 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"log"
 	"os"
+	"slices"
+	"strconv"
+	"strings"
 )
 
 func main() {
-	readFile, err := os.Open("input.txt")
+	// set input file name
+	var inputFile string
+
+	testFlag := flag.Bool("test", true, "test flag")
+	flag.Parse()
+	log.Printf("Start - testFlag = %v\n", *testFlag)
+
+	switch {
+	case *testFlag:
+		inputFile = "input_test.txt"
+	default:
+		inputFile = "input.txt"
+	}
+
+	// read input file
+	readFile, err := os.Open(inputFile)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -16,91 +36,60 @@ func main() {
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
 
+	// initialise slices to hold left and right int values
+	left := []int{}
+	right := []int{}
+
+	// iterate input lines and parse out left and right int values into slices
 	for fileScanner.Scan() {
-		fmt.Println(fileScanner.Text())
+		s := fileScanner.Text()
+		left, right = parseNums(s, left, right)
 	}
 
-	fmt.Println("list distance =", getListDistance())
+	dist := getListDistance(left, right)
+
+	fmt.Println("dist =", dist)
 }
 
-func getListDistance() int {
-	return 0
-}
+// Parse the left and right numbers out of the string and append them to the corresponding laft and right slices
+func parseNums(s string, left, right []int) (leftRes, rightRes []int) {
+	// get the 2 string numbers from the string
+	nums := strings.Fields(s)
 
-/*
-func cardCount42(s string, currentCardCounts map[int]int) map[int]int {
-	game := strings.Split(s, ":")
-	if len(game) != 2 {
-		return currentCardCounts
-	}
-
-	gameNumber, err := strconv.Atoi(strings.Fields(game[0])[1])
+	// convert 1st string and append to left slice
+	iLeft, err := strconv.Atoi(nums[0])
 	if err != nil {
-		return currentCardCounts
+		panic(err)
 	}
 
-	//count initial card for this game number
-	_, ok := currentCardCounts[gameNumber]
-	if !ok {
-		currentCardCounts[gameNumber] = 1
-	} else {
-		currentCardCounts[gameNumber] += 1
+	left = append(left, iLeft)
+
+	// convert 2nd string and append to right slice
+	iRight, err := strconv.Atoi(nums[1])
+	if err != nil {
+		panic(err)
 	}
 
-	// get winning points, convert to game wins and bump winning card counts
-	points := getCardScore41(s)
-	score := 0
-	if points > 0 {
-		score = int(math.Log2(float64(points))) + 1
-	}
+	right = append(right, iRight)
 
-	// for each card currently held
-	for i := 0; i < currentCardCounts[gameNumber]; i++ {
-		// for each number up to winning score
-		for j := gameNumber + 1; j <= gameNumber+score; j++ {
-			currentCardCounts[j] += 1
-		}
-	}
-
-	return currentCardCounts
+	return left, right
 }
 
-func getCardScore41(s string) int {
-	// filter out game number and get lists of winning numbers and player number
-	game := strings.Split(s, ":")
-	if len(game) != 2 {
-		return 0
-	}
+// sort the left and right slices and accumulate the absolute difference values
+func getListDistance(left, right []int) int {
+	slices.Sort(left)
+	slices.Sort(right)
 
-	numbers := strings.Split(game[1], "|")
-	if len(numbers) != 2 {
-		return 0
-	}
+	var dist int
 
-	winners := make([]int, 0, len(numbers[0]))
-	for _, n := range strings.Fields(numbers[0]) {
-		num, _ := strconv.Atoi(string(n))
-		winners = append(winners, num)
-	}
-
-	players := make([]int, 0, len(numbers[1]))
-	for _, n := range strings.Fields(numbers[1]) {
-		num, _ := strconv.Atoi(string(n))
-		players = append(players, num)
-	}
-
-	// calculate scores
-	score := 0
-	for _, winner := range winners {
-		if slices.Contains(players, winner) {
-			if score == 0 {
-				score = 1
-			} else {
-				score *= 2
-			}
+	for i := range len(left) {
+		diff := left[i] - right[i]
+		if diff < 0 {
+			diff = -diff
 		}
+
+		dist += diff
 	}
 
-	return score
+	return dist
 }
-*/
