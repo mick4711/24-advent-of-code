@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -29,12 +30,38 @@ func main() {
 
 	// iterate input lines checking for safe
 	for fileScanner.Scan() {
-		if isSafeReport(fileScanner.Text()) {
+		sl := getIntSlice(fileScanner.Text())
+		if isSafeReport(sl) {
 			safeReports++
+			continue
+		}
+		for i, _ := range sl {
+			dl := slices.Delete(slices.Clone(sl), i, i+1)
+			if isSafeReport(dl) {
+				safeReports++
+				break
+			}
 		}
 	}
 
 	fmt.Println("safe reports count =", safeReports)
+}
+
+func getIntSlice(s string) []int {
+	// get the string numbers from the string
+	nums := strings.Fields(s)
+	sl := make([]int, len(nums))
+
+	for i, v := range nums {
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			panic(err)
+		}
+
+		sl[i] = n
+	}
+
+	return sl
 }
 
 func getInputFileName() string {
@@ -55,25 +82,15 @@ func getInputFileName() string {
 }
 
 // Parse the numbers out of the string and check for montonic sequence with diff limits
-func isSafeReport(s string) bool {
+func isSafeReport(sl []int) bool {
 	const (
 		maxDiff = 3
 		minDiff = 1
 	)
-	// get the string numbers from the string
-	nums := strings.Fields(s)
-
-	first, err := strconv.Atoi(nums[0])
-	if err != nil {
-		panic(err)
-	}
-
-	second, err := strconv.Atoi(nums[1])
-	if err != nil {
-		panic(err)
-	}
 
 	var increasing, decreasing bool
+
+	first, second := sl[0], sl[1]
 
 	switch {
 	case first < second:
@@ -94,12 +111,8 @@ func isSafeReport(s string) bool {
 
 	prev := second
 
-	for i := 2; i < len(nums); i++ {
-		curr, err := strconv.Atoi(nums[i])
-		if err != nil {
-			panic(err)
-		}
-
+	for i := 2; i < len(sl); i++ {
+		curr := sl[i]
 		diff := 0
 
 		switch {
