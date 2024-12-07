@@ -14,4 +14,5 @@ test flag used to set input file, defaults to test file
 Day 1.1 = 1320851 \
 Day 1.2 = 26859182 \
 Day 2.1 = 359 \
-Day 2.2 = 418
+Day 2.2 = 418 \
+Day 3.1 = 174103751

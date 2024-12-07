@@ -6,21 +6,16 @@ import (
 
 func TestIsSafeReport(t *testing.T) {
 	tests := []struct {
-		report []int
-		want   bool
+		memory string
+		want   int
 	}{
-		{[]int{7, 6, 4, 2, 1}, true},
-		{[]int{1, 2, 7, 8, 9}, false},
-		{[]int{9, 7, 6, 2, 1}, false},
-		{[]int{1, 3, 2, 4, 5}, false},
-		{[]int{8, 6, 4, 4, 1}, false},
-		{[]int{1, 3, 6, 7, 9}, true},
+		{"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))", 161},
 	}
 
 	for _, test := range tests {
-		got := isSafeReport(test.report)
+		got := getMulResult(test.memory)
 		if got != test.want {
-			t.Errorf("isSafeReport(%v), got:%v, want:%v", test.report, got, test.want)
+			t.Errorf("getMulResult(%v), got:%v, want:%v", test.memory, got, test.want)
 		}
 	}
 }
