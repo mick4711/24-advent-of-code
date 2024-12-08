@@ -19,6 +19,9 @@ func main() {
 		panic(err)
 	}
 
+	// TODO FindAllString vs re.FindAllStringIndex
+	// TODO https://goplay.tools/snippet/QbEL5EngBgY
+
 	ans := getMulResult(string(b))
 	fmt.Println("answer =", ans)
 }
