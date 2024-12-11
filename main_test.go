@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// TODO add tests for nested dos and donts
 func TestIsSafeReport(t *testing.T) {
 	tests := []struct {
 		memory string

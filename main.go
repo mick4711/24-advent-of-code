@@ -19,10 +19,58 @@ func main() {
 		panic(err)
 	}
 
-	// TODO FindAllString vs re.FindAllStringIndex
-	// TODO https://goplay.tools/snippet/QbEL5EngBgY
+	s := string(b)
+	// get slice of do() indices
+	reDo := regexp.MustCompile(`do\(\)`)
+	dos := reDo.FindAllStringIndex(s, -1)
+	// get slice of don't() indices
+	reDont := regexp.MustCompile(`don't\(\)`)
+	donts := reDont.FindAllStringIndex(s, -1)
+	// set curr do index = 0
+	pDo := -1
+	currDo := []int{0, 0}
+	// set curr dont index = 1st dont index
+	pDont := 0
+	currDont := donts[pDont]
+	ans := 0
+	// get mulResult of curr do to curr dont
+	for {
+		searchString := s[currDo[1]:currDont[0]]
+		log.Println(searchString)
+		ans += getMulResult(searchString)
+		// find next index of do > curr dont and make it curr do
+		pDo++
+		if pDo < len(dos) {
+			currDo = dos[pDo]
+		} else {
+			break
+		}
 
-	ans := getMulResult(string(b))
+		// TODO check for currDo > currDont
+		// for currDo[pDo] < currDont[pDont] {
+		// 	pDo++
+		// 	if pDo > len(dos)-1 {
+		// 		break
+		// 	}
+		// }
+
+		// find next index of dont > curr do and make it curr dont
+		pDont++
+		if pDont < len(donts) {
+			currDont = donts[pDont]
+		} else {
+			currDont = []int{len(s) - 1, len(s) - 1}
+		}
+
+		// TODO check for currDo > currDont
+		// for currDo[pDo] < currDont[pDont] {
+		// 	pDont++
+		// 	if pDont > len(donts)-1 {
+		// 		break
+		// 	}
+		// }
+	}
+
 	fmt.Println("answer =", ans)
 }
 
