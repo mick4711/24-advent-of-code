@@ -33,9 +33,10 @@ func getXmasCount(file string) int {
 	// split file into lines
 	lines := strings.Split(file, "\n")
 	for i, s := range lines {
-		// find 'x' in each lines
+		// find 'X' in each lines
 		xs := re.FindAllStringIndex(s, -1)
 		for _, v := range xs {
+			// search along 8 directions
 			ans += findW(s, v[0])
 			ans += findE(s, v[0])
 			ans += findS(i, v[0], lines)
@@ -45,15 +46,12 @@ func getXmasCount(file string) int {
 			ans += findSW(i, v[0], lines)
 			ans += findSE(i, v[0], lines)
 		}
-
-		// search along 8 directions for 'mas'
-		fmt.Println("ans =", i, ans)
 	}
 
 	return ans
 }
 
-func findW(s string, col int) int {
+func findE(s string, col int) int {
 	if col+searchTermLen > len(s) {
 		return 0
 	}
@@ -70,7 +68,7 @@ func findW(s string, col int) int {
 	return 0
 }
 
-func findE(s string, col int) int {
+func findW(s string, col int) int {
 	if col < searchTermLen-1 {
 		return 0
 	}
@@ -126,27 +124,6 @@ func findNW(row, col int, lines []string) int {
 		return 0
 	}
 
-	if col+searchTermLen > len(lines[0]) {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row-i][col+i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findNE(row, col int, lines []string) int {
-	if row < searchTermLen-1 {
-		return 0
-	}
-
 	if col < searchTermLen-1 {
 		return 0
 	}
@@ -163,12 +140,33 @@ func findNE(row, col int, lines []string) int {
 	return 0
 }
 
+func findNE(row, col int, lines []string) int {
+	if row < searchTermLen-1 {
+		return 0
+	}
+
+	if col+searchTermLen > len(lines[0]) {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row-i][col+i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
 func findSW(row, col int, lines []string) int {
 	if row > len(lines)-searchTermLen {
 		return 0
 	}
 
-	if col+searchTermLen > len(lines[0]) {
+	if col < searchTermLen-1 {
 		return 0
 	}
 
@@ -189,7 +187,7 @@ func findSE(row, col int, lines []string) int {
 		return 0
 	}
 
-	if col < searchTermLen-1 {
+	if col+searchTermLen > len(lines[0]) {
 		return 0
 	}
 
