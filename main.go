@@ -6,8 +6,12 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
+)
+
+const (
+	searchTerm    = "XMAS"
+	searchTermLen = len(searchTerm)
 )
 
 func main() {
@@ -19,83 +23,184 @@ func main() {
 		panic(err)
 	}
 
-	s := string(b)
-	ans := getEnabledMuls(s)
-
-	fmt.Println("answer =", ans)
+	ans := getXmasCount(string(b))
+	fmt.Println("ans =", ans)
 }
 
-func getEnabledMuls(s string) int {
-	// get slice of do() indices
-	reDo := regexp.MustCompile(`do\(\)`)
-	dos := reDo.FindAllStringIndex(s, -1)
-
-	// get slice of don't() indices
-	reDont := regexp.MustCompile(`don't\(\)`)
-	donts := reDont.FindAllStringIndex(s, -1)
-
-	// set curr do index and value to start of string
-	pDo := -1
-	currDo := []int{0, 0}
-
-	// set curr dont index = 1st dont index
-	pDont := 0
-	currDont := donts[pDont]
+func getXmasCount(file string) int {
 	ans := 0
-
-	// get mulResult of curr do to curr dont
-outerLoop:
-	for {
-		searchString := s[currDo[1]:currDont[0]]
-		ans += getMulResult(searchString)
-
-		// find next index of do > curr dont and make it curr do
-		for currDo[1] < currDont[0] {
-			pDo++
-			if pDo < len(dos) {
-				currDo = dos[pDo]
-			} else {
-				break outerLoop
-			}
-		}
-
-		// find next index of dont > curr do and make it curr dont
-		for currDont[1] < currDo[0] {
-			pDont++
-			if pDont < len(donts) {
-				currDont = donts[pDont]
-			} else { // go to end of string
-				currDont = []int{len(s) - 1, len(s) - 1}
-			}
+	re := regexp.MustCompile(`X`)
+	// split file into lines
+	lines := strings.Split(file, "\n")
+	for i, s := range lines {
+		// find 'X' in each lines
+		xs := re.FindAllStringIndex(s, -1)
+		for _, v := range xs {
+			// search along 8 directions
+			ans += findW(s, v[0])
+			ans += findE(s, v[0])
+			ans += findS(i, v[0], lines)
+			ans += findN(i, v[0], lines)
+			ans += findNW(i, v[0], lines)
+			ans += findNE(i, v[0], lines)
+			ans += findSW(i, v[0], lines)
+			ans += findSE(i, v[0], lines)
 		}
 	}
 
 	return ans
 }
 
-// Parse the numbers out of the string and check for montonic sequence with diff limits
-func getMulResult(s string) int {
-	re := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
-	muls := re.FindAllString(s, -1)
-	res := 0
-
-	for _, mul := range muls {
-		ops := strings.Split(mul[4:len(mul)-1], ",")
-
-		op1, err := strconv.Atoi(ops[0])
-		if err != nil {
-			panic(err)
-		}
-
-		op2, err := strconv.Atoi(ops[1])
-		if err != nil {
-			panic(err)
-		}
-
-		res += op1 * op2
+func findE(s string, col int) int {
+	if col+searchTermLen > len(s) {
+		return 0
 	}
 
-	return res
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(s[col+i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findW(s string, col int) int {
+	if col < searchTermLen-1 {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(s[col-i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findS(row, col int, lines []string) int {
+	if row > len(lines)-searchTermLen {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row+i][col])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findN(row, col int, lines []string) int {
+	if row < searchTermLen-1 {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row-i][col])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findNW(row, col int, lines []string) int {
+	if row < searchTermLen-1 {
+		return 0
+	}
+
+	if col < searchTermLen-1 {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row-i][col-i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findNE(row, col int, lines []string) int {
+	if row < searchTermLen-1 {
+		return 0
+	}
+
+	if col+searchTermLen > len(lines[0]) {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row-i][col+i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findSW(row, col int, lines []string) int {
+	if row > len(lines)-searchTermLen {
+		return 0
+	}
+
+	if col < searchTermLen-1 {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row+i][col-i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
+}
+
+func findSE(row, col int, lines []string) int {
+	if row > len(lines)-searchTermLen {
+		return 0
+	}
+
+	if col+searchTermLen > len(lines[0]) {
+		return 0
+	}
+
+	var word string
+	for i := 0; i < searchTermLen; i++ {
+		word += string(lines[row+i][col+i])
+	}
+
+	if word == searchTerm {
+		return 1
+	}
+
+	return 0
 }
 
 func getInputFileName() string {

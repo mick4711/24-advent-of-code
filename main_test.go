@@ -4,22 +4,20 @@ import (
 	"testing"
 )
 
-// TODO add tests for nested dos and donts
-func TestIsSafeReport(t *testing.T) {
+func TestGetXmasCount(t *testing.T) {
 	tests := []struct {
-		memory string
-		want   int
+		file string
+		want int
 	}{
-		{"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))", 48},                      // clean
-		{"xpqdo()c$mul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))", 48},              // preceding do()
-		{"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)xvdon't()aq£$undo()?mul(8,5))", 48},         // trailing don't
-		{"xpqdo()c$mul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)xvdon't()aq£$undo()?mul(8,5))", 48}, // preceding do() and trailing don't
+		{
+			"MMMSXXMASM\nMSAMXMSMSA\nAMXSXMAAMM\nMSAMASMSMX\nXMASAMXAMM\nXXAMMXXAMA\nSMSMSASXSS\nSAXAMASAAA\nMAMMMXMMMM\nMXMXAXMASX", 18,
+		},
 	}
 
 	for _, test := range tests {
-		got := getEnabledMuls(test.memory)
+		got := getXmasCount(test.file)
 		if got != test.want {
-			t.Errorf("getEnabledMuls(%v), got:%v, want:%v", test.memory, got, test.want)
+			t.Errorf("getXmasCount(%v), got:%v, want:%v", test.file, got, test.want)
 		}
 	}
 }
