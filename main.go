@@ -9,11 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	searchTerm    = "XMAS"
-	searchTermLen = len(searchTerm)
-)
-
 func main() {
 	// set input file name
 	inputFileName := getInputFileName()
@@ -29,178 +24,65 @@ func main() {
 
 func getXmasCount(file string) int {
 	ans := 0
-	re := regexp.MustCompile(`X`)
+	re := regexp.MustCompile(`A`)
 	// split file into lines
 	lines := strings.Split(file, "\n")
-	for i, s := range lines {
-		// find 'X' in each lines
-		xs := re.FindAllStringIndex(s, -1)
+	rowLen := len(lines[0])
+	rowCount := len(lines)
+
+	for row, line := range lines {
+		// eliminate edge rows
+		if row < 1 || row >= rowCount-1 {
+			continue
+		}
+		// find 'A' in each lines
+		xs := re.FindAllStringIndex(line, -1)
 		for _, v := range xs {
-			// search along 8 directions
-			ans += findW(s, v[0])
-			ans += findE(s, v[0])
-			ans += findS(i, v[0], lines)
-			ans += findN(i, v[0], lines)
-			ans += findNW(i, v[0], lines)
-			ans += findNE(i, v[0], lines)
-			ans += findSW(i, v[0], lines)
-			ans += findSE(i, v[0], lines)
+			// eliminate edge cols
+			col := v[0]
+			if col < 1 || col >= rowLen-1 {
+				continue
+			}
+
+			// get the 4 corners
+			tl := string(lines[row-1][col-1])
+			tr := string(lines[row-1][col+1])
+			bl := string(lines[row+1][col-1])
+			br := string(lines[row+1][col+1])
+
+			// search top left for M or S and bottom right for conjugate
+			switch tl {
+			case "M":
+				if br != "S" {
+					continue
+				}
+			case "S":
+				if br != "M" {
+					continue
+				}
+			default:
+				continue
+			}
+
+			// search top right for M or S and bottom left for conjugate
+			switch tr {
+			case "M":
+				if bl != "S" {
+					continue
+				}
+			case "S":
+				if bl != "M" {
+					continue
+				}
+			default:
+				continue
+			}
+
+			ans++
 		}
 	}
 
 	return ans
-}
-
-func findE(s string, col int) int {
-	if col+searchTermLen > len(s) {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(s[col+i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findW(s string, col int) int {
-	if col < searchTermLen-1 {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(s[col-i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findS(row, col int, lines []string) int {
-	if row > len(lines)-searchTermLen {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row+i][col])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findN(row, col int, lines []string) int {
-	if row < searchTermLen-1 {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row-i][col])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findNW(row, col int, lines []string) int {
-	if row < searchTermLen-1 {
-		return 0
-	}
-
-	if col < searchTermLen-1 {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row-i][col-i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findNE(row, col int, lines []string) int {
-	if row < searchTermLen-1 {
-		return 0
-	}
-
-	if col+searchTermLen > len(lines[0]) {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row-i][col+i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findSW(row, col int, lines []string) int {
-	if row > len(lines)-searchTermLen {
-		return 0
-	}
-
-	if col < searchTermLen-1 {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row+i][col-i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
-}
-
-func findSE(row, col int, lines []string) int {
-	if row > len(lines)-searchTermLen {
-		return 0
-	}
-
-	if col+searchTermLen > len(lines[0]) {
-		return 0
-	}
-
-	var word string
-	for i := 0; i < searchTermLen; i++ {
-		word += string(lines[row+i][col+i])
-	}
-
-	if word == searchTerm {
-		return 1
-	}
-
-	return 0
 }
 
 func getInputFileName() string {
