@@ -24,14 +24,63 @@ func main() {
 }
 
 func getMiddleSum(file string) int {
+	middleSum := 0
 	// split out rules and updates
 	rnu := strings.Split(file, "\n\n")
-	rules := rnu[0]
-	middleSum := 0
 
-	// iter thru rules make fwd and bkwd maps
+	// iter thru rules make bkwd map
+	bkwds := getBkwdRules(rnu[0])
+
+	// iter thru updates check violations
+	for _, update := range strings.Split(rnu[1], "\n") {
+		ns := getNumericSlice(update)
+
+		if !isViolation(ns, bkwds) {
+			middleSum += ns[(len(ns)-1)/2]
+		}
+	}
+
+	return middleSum
+}
+
+// a violation is when a forward check encounters a bkwds entry
+func isViolation(ns []int, bkwds map[int][]int) bool {
+	isViolation := false
+
+	for i, n := range ns {
+		precedings, ok := bkwds[n]
+		if !ok {
+			continue
+		}
+
+		// check if any trailing n's are in bkwds
+		for j := i; j < len(ns); j++ {
+			if slices.Contains(precedings, ns[j]) {
+				isViolation = true
+			}
+		}
+	}
+
+	return isViolation
+}
+
+func getNumericSlice(update string) []int {
+	nums := strings.Split(update, ",")
+	ns := []int{}
+
+	for _, num := range nums {
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			panic(err)
+		}
+
+		ns = append(ns, n)
+	}
+	return ns
+}
+
+func getBkwdRules(rules string) map[int][]int {
 	bkwds := make(map[int][]int, len(rules))
-	fwds := make(map[int][]int, len(rules))
 
 	for _, v := range strings.Split(rules, "\n") {
 		r := strings.Split(v, "|")
@@ -52,56 +101,9 @@ func getMiddleSum(file string) int {
 		} else {
 			bkwds[aft] = append(pres, bef)
 		}
-
-		trls, ok := fwds[bef]
-		if !ok {
-			fwds[bef] = []int{aft}
-		} else {
-			fwds[bef] = append(trls, aft)
-		}
 	}
 
-	// iter thru updates check fwd and bkwd violations
-	updates := rnu[1]
-violationCheck:
-	for _, update := range strings.Split(updates, "\n") {
-		nums := strings.Split(update, ",")
-		ns := []int{}
-
-		for _, num := range nums {
-			n, err := strconv.Atoi(num)
-			if err != nil {
-				panic(err)
-			}
-
-			ns = append(ns, n)
-		}
-		end := len(ns)
-		middle := ns[(end-1)/2]
-
-		// a violation is
-		// - when a reverse check encounters a fwds match
-		// - a forward check encounters a bkwds
-		// maybe bkwd checks are enough!
-		// forward checks
-		// check if any trailing n's are in bkwds
-		for i, n := range ns {
-			precedings, ok := bkwds[n]
-			if !ok {
-				continue
-			}
-
-			for j := i; j < end; j++ {
-				if slices.Contains(precedings, ns[j]) {
-					break violationCheck
-				}
-			}
-		}
-
-		middleSum += middle
-	}
-
-	return middleSum
+	return bkwds
 }
 
 func getInputFileName() string {
