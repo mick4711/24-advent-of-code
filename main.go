@@ -76,6 +76,7 @@ func getNumericSlice(update string) []int {
 
 		ns = append(ns, n)
 	}
+
 	return ns
 }
 
