@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -18,71 +19,92 @@ func main() {
 		panic(err)
 	}
 
-	ans := getXmasCount(string(b))
+	ans := getMiddleSum(string(b))
 	fmt.Println("ans =", ans)
 }
 
-func getXmasCount(file string) int {
-	ans := 0
-	re := regexp.MustCompile(`A`)
-	// split file into lines
-	lines := strings.Split(file, "\n")
-	rowLen := len(lines[0])
-	rowCount := len(lines)
+func getMiddleSum(file string) int {
+	middleSum := 0
+	// split out rules and updates
+	rnu := strings.Split(file, "\n\n")
 
-	for row, line := range lines {
-		// eliminate edge rows
-		if row < 1 || row >= rowCount-1 {
-			continue
-		}
-		// find 'A' in each lines
-		xs := re.FindAllStringIndex(line, -1)
-		for _, v := range xs {
-			// eliminate edge cols
-			col := v[0]
-			if col < 1 || col >= rowLen-1 {
-				continue
-			}
+	// iter thru rules make bkwd map
+	bkwds := getBkwdRules(rnu[0])
 
-			// get the 4 corners
-			tl := string(lines[row-1][col-1])
-			tr := string(lines[row-1][col+1])
-			bl := string(lines[row+1][col-1])
-			br := string(lines[row+1][col+1])
+	// iter thru updates check violations
+	for _, update := range strings.Split(rnu[1], "\n") {
+		ns := getNumericSlice(update)
 
-			// search top left for M or S and bottom right for conjugate
-			switch tl {
-			case "M":
-				if br != "S" {
-					continue
-				}
-			case "S":
-				if br != "M" {
-					continue
-				}
-			default:
-				continue
-			}
-
-			// search top right for M or S and bottom left for conjugate
-			switch tr {
-			case "M":
-				if bl != "S" {
-					continue
-				}
-			case "S":
-				if bl != "M" {
-					continue
-				}
-			default:
-				continue
-			}
-
-			ans++
+		if !isViolation(ns, bkwds) {
+			middleSum += ns[(len(ns)-1)/2]
 		}
 	}
 
-	return ans
+	return middleSum
+}
+
+// a violation is when a forward check encounters a bkwds entry
+func isViolation(ns []int, bkwds map[int][]int) bool {
+	isViolation := false
+
+	for i, n := range ns {
+		precedings, ok := bkwds[n]
+		if !ok {
+			continue
+		}
+
+		// check if any trailing n's are in bkwds
+		for j := i; j < len(ns); j++ {
+			if slices.Contains(precedings, ns[j]) {
+				isViolation = true
+			}
+		}
+	}
+
+	return isViolation
+}
+
+func getNumericSlice(update string) []int {
+	nums := strings.Split(update, ",")
+	ns := []int{}
+
+	for _, num := range nums {
+		n, err := strconv.Atoi(num)
+		if err != nil {
+			panic(err)
+		}
+
+		ns = append(ns, n)
+	}
+
+	return ns
+}
+
+func getBkwdRules(rules string) map[int][]int {
+	bkwds := make(map[int][]int, len(rules))
+
+	for _, v := range strings.Split(rules, "\n") {
+		r := strings.Split(v, "|")
+
+		aft, err := strconv.Atoi(r[1])
+		if err != nil {
+			panic(err)
+		}
+
+		bef, err := strconv.Atoi(r[0])
+		if err != nil {
+			panic(err)
+		}
+
+		pres, ok := bkwds[aft]
+		if !ok {
+			bkwds[aft] = []int{bef}
+		} else {
+			bkwds[aft] = append(pres, bef)
+		}
+	}
+
+	return bkwds
 }
 
 func getInputFileName() string {
