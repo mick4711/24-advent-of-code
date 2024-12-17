@@ -38,7 +38,7 @@ func TestGetMiddleSum(t *testing.T) {
 75,29,13
 61,13,29
 97,13,75,29,47`,
-			143,
+			123,
 		},
 	}
 

@@ -34,18 +34,27 @@ func getMiddleSum(file string) int {
 	// iter thru updates check violations
 	for _, update := range strings.Split(rnu[1], "\n") {
 		ns := getNumericSlice(update)
+		ns, needsFixing := fixViolation(ns, bkwds)
 
-		if !isViolation(ns, bkwds) {
-			middleSum += ns[(len(ns)-1)/2]
+		// didn't need any fix, so move along to next update
+		if !needsFixing {
+			continue
 		}
+
+		// keep fixing until it passes
+		for needsFixing {
+			ns, needsFixing = fixViolation(ns, bkwds)
+		}
+
+		middleSum += ns[(len(ns)-1)/2]
 	}
 
 	return middleSum
 }
 
-// a violation is when a forward check encounters a bkwds entry
-func isViolation(ns []int, bkwds map[int][]int) bool {
-	isViolation := false
+// swap number positions when a violation is encountered
+func fixViolation(ns []int, bkwds map[int][]int) ([]int, bool) {
+	needsFixing := false
 
 	for i, n := range ns {
 		precedings, ok := bkwds[n]
@@ -53,15 +62,21 @@ func isViolation(ns []int, bkwds map[int][]int) bool {
 			continue
 		}
 
+		k := i // index of target number
 		// check if any trailing n's are in bkwds
-		for j := i; j < len(ns); j++ {
-			if slices.Contains(precedings, ns[j]) {
-				isViolation = true
+		for j := i + 1; j < len(ns); j++ {
+			if !slices.Contains(precedings, ns[j]) {
+				continue
 			}
+
+			// mark a fixed and swap target with rule value
+			needsFixing = true
+			ns[k], ns[j] = ns[j], ns[k]
+			k = j
 		}
 	}
 
-	return isViolation
+	return ns, needsFixing
 }
 
 func getNumericSlice(update string) []int {
