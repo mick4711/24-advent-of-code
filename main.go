@@ -35,7 +35,12 @@ func getMiddleSum(file string) int {
 	for _, update := range strings.Split(rnu[1], "\n") {
 		ns := getNumericSlice(update)
 
-		if !isViolation(ns, bkwds) {
+		ns, fixed := fixViolation(ns, bkwds)
+		if fixed {
+			if isViolation(ns, bkwds) {
+				panic(fmt.Sprintln("fixed ns is still a violation:", update))
+			}
+
 			middleSum += ns[(len(ns)-1)/2]
 		}
 	}
@@ -43,10 +48,39 @@ func getMiddleSum(file string) int {
 	return middleSum
 }
 
+// swap number positions when a violation is encountered
+// TODO this ain't fixed
+// 79,49,23,21,24,35,11,76,28,31,89,42,29,26,98,74,41,57,27
+// [23 11 28 31 89 42 98 74 57 27 29 26 79 76 41 21 49 24 35]
+// first pair violates rule 11|23
+func fixViolation(ns []int, bkwds map[int][]int) ([]int, bool) {
+	fixed := false
+
+	for i, n := range ns {
+		precedings, ok := bkwds[n]
+		if !ok {
+			continue
+		}
+
+		k := i // index of target number
+		// check if any trailing n's are in bkwds
+		for j := i + 1; j < len(ns); j++ {
+			if !slices.Contains(precedings, ns[j]) {
+				continue
+			}
+
+			// mark a fixed and swap target with rule value
+			fixed = true
+			ns[k], ns[j] = ns[j], ns[k]
+			k = j
+		}
+	}
+
+	return ns, fixed
+}
+
 // a violation is when a forward check encounters a bkwds entry
 func isViolation(ns []int, bkwds map[int][]int) bool {
-	isViolation := false
-
 	for i, n := range ns {
 		precedings, ok := bkwds[n]
 		if !ok {
@@ -56,12 +90,12 @@ func isViolation(ns []int, bkwds map[int][]int) bool {
 		// check if any trailing n's are in bkwds
 		for j := i; j < len(ns); j++ {
 			if slices.Contains(precedings, ns[j]) {
-				isViolation = true
+				return true
 			}
 		}
 	}
 
-	return isViolation
+	return false
 }
 
 func getNumericSlice(update string) []int {
