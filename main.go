@@ -52,7 +52,7 @@ func getPathLength(file string) int {
 
 	// initialise obstructions and guard
 	lab, guard := initialise(lines)
-	// guard.walk finds obs in current dir, update row, col , path , dir, return leave as true or false
+	// guard.walk finds obs in current dir, update row, col , path , dir, return finished as true or false
 	for {
 		finished := guard.walk(lab)
 		if finished {
