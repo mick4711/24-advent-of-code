@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"slices"
-	"strconv"
 	"strings"
 )
 
@@ -19,107 +17,74 @@ func main() {
 		panic(err)
 	}
 
-	ans := getMiddleSum(string(b))
+	ans := getPathLength(string(b))
 	fmt.Println("ans =", ans)
 }
 
-func getMiddleSum(file string) int {
-	middleSum := 0
-	// split out rules and updates
-	rnu := strings.Split(file, "\n\n")
+func getPathLength(file string) int {
+	pathLength := 0
+	// store obs in row and col maps
+	// find caret and starting direction up
+	const (
+		up = iota
+		right
+		down
+		left
+	)
+	lines := strings.Split(file, "\n")
+	obsRows := make(map[int][]int, len(lines))
+	obsCols := make(map[int][]int, len(lines[0]))
+	startRow := 0
+	startCol := 0
+	dir := up
 
-	// iter thru rules make bkwd map
-	bkwds := getBkwdRules(rnu[0])
+	for row, line := range lines {
+		for col, cell := range line {
+			if string(cell) == "#" {
+				_, ok := obsRows[row]
+				if !ok {
+					obsRows[row] = []int{col}
+				} else {
+					obsRows[row] = append(obsRows[row], col)
+				}
 
-	// iter thru updates check violations
-	for _, update := range strings.Split(rnu[1], "\n") {
-		ns := getNumericSlice(update)
-		ns, needsFixing := fixViolation(ns, bkwds)
+				_, ok = obsCols[col]
+				if !ok {
+					obsCols[col] = []int{row}
+				} else {
+					obsCols[col] = append(obsCols[col], row)
+				}
 
-		// didn't need any fix, so move along to next update
-		if !needsFixing {
-			continue
-		}
-
-		// keep fixing until it passes
-		for needsFixing {
-			ns, needsFixing = fixViolation(ns, bkwds)
-		}
-
-		middleSum += ns[(len(ns)-1)/2]
-	}
-
-	return middleSum
-}
-
-// swap number positions when a violation is encountered
-func fixViolation(ns []int, bkwds map[int][]int) ([]int, bool) {
-	needsFixing := false
-
-	for i, n := range ns {
-		precedings, ok := bkwds[n]
-		if !ok {
-			continue
-		}
-
-		k := i // index of target number
-		// check if any trailing n's are in bkwds
-		for j := i + 1; j < len(ns); j++ {
-			if !slices.Contains(precedings, ns[j]) {
-				continue
+				pathLength++
 			}
 
-			// mark a fixed and swap target with rule value
-			needsFixing = true
-			ns[k], ns[j] = ns[j], ns[k]
-			k = j
+			if string(cell) == "^" {
+				startRow = row
+				startCol = col
+			}
 		}
 	}
 
-	return ns, needsFixing
-}
-
-func getNumericSlice(update string) []int {
-	nums := strings.Split(update, ",")
-	ns := []int{}
-
-	for _, num := range nums {
-		n, err := strconv.Atoi(num)
-		if err != nil {
-			panic(err)
-		}
-
-		ns = append(ns, n)
-	}
-
-	return ns
-}
-
-func getBkwdRules(rules string) map[int][]int {
-	bkwds := make(map[int][]int, len(rules))
-
-	for _, v := range strings.Split(rules, "\n") {
-		r := strings.Split(v, "|")
-
-		aft, err := strconv.Atoi(r[1])
-		if err != nil {
-			panic(err)
-		}
-
-		bef, err := strconv.Atoi(r[0])
-		if err != nil {
-			panic(err)
-		}
-
-		pres, ok := bkwds[aft]
-		if !ok {
-			bkwds[aft] = []int{bef}
-		} else {
-			bkwds[aft] = append(pres, bef)
+	fmt.Println(obsRows)
+	fmt.Println(obsCols)
+	fmt.Println(startRow)
+	fmt.Println(startCol)
+	fmt.Println(dir)
+	// find 1st obstruction in column
+	// change direction right
+	// find obstr in row
+	// change direction down
+	obs, ok := obsCols[startCol]
+	if ok {
+		for i := len(obs) - 1; i >= 0; i-- {
+			if obs[i] < startRow {
+				// turn right and find obs in row
+				fmt.Println("hit obs:", obs[i], startCol)
+			}
 		}
 	}
 
-	return bkwds
+	return pathLength
 }
 
 func getInputFileName() string {
