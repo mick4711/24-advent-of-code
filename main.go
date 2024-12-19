@@ -16,9 +16,15 @@ type (
 		path int
 		dir  Dir
 	}
-	Lab struct {
+	Visit struct {
+		row int
+		col int
+	}
+	Mark interface{}
+	Lab  struct {
 		obsRows map[int][]int
 		obsCols map[int][]int
+		marked  map[Visit]Mark
 	}
 )
 
@@ -32,6 +38,7 @@ const (
 var (
 	maxCol int
 	maxRow int
+	mark   Mark
 )
 
 func main() {
@@ -49,8 +56,6 @@ func main() {
 
 func getPathLength(file string) int {
 	lines := strings.Split(file, "\n")
-
-	// initialise obstructions and guard
 	lab, guard := initialise(lines)
 	// guard.walk finds obs in current dir, update row, col , path , dir, return finished as true or false
 	for {
@@ -74,6 +79,11 @@ func (guard *Guard) walk(lab Lab) bool {
 
 				fmt.Println("hit obs:", obs[i], guard.col)
 				guard.path += guard.row - obs[i] - 1
+
+				for j := obs[i] + 1; j < guard.row; j++ {
+					lab.marked[Visit{i, j}] = mark
+				}
+
 				guard.row = obs[i] + 1
 				guard.dir = Right
 
@@ -160,6 +170,7 @@ func initialise(lines []string) (lab Lab, guard Guard) {
 	maxRow = len(lines[0])
 	lab.obsRows = make(map[int][]int, maxCol)
 	lab.obsCols = make(map[int][]int, maxRow)
+	lab.marked = make(map[Visit]Mark, maxCol*maxRow)
 
 	for row, line := range lines {
 		for col, cell := range line {
