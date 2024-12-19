@@ -41,6 +41,7 @@ var (
 	mark   Mark
 )
 
+// TODO test with multiple obs in same row or col
 func main() {
 	// set input file name
 	inputFileName := getInputFileName()
@@ -65,7 +66,7 @@ func getPathLength(file string) int {
 		}
 	}
 
-	return guard.path
+	return len(lab.marked)
 }
 
 func (guard *Guard) walk(lab Lab) bool {
@@ -81,13 +82,17 @@ func (guard *Guard) walk(lab Lab) bool {
 				guard.path += guard.row - obs[i] - 1
 
 				for j := obs[i] + 1; j < guard.row; j++ {
-					lab.marked[Visit{i, j}] = mark
+					lab.marked[Visit{j, guard.col}] = mark
 				}
 
 				guard.row = obs[i] + 1
 				guard.dir = Right
 
 				return false
+			}
+
+			for i := 0; i < guard.row; i++ {
+				lab.marked[Visit{i, guard.col}] = mark
 			}
 
 			return true
@@ -106,10 +111,19 @@ func (guard *Guard) walk(lab Lab) bool {
 
 				fmt.Println("hit obs:", guard.row, obs[i])
 				guard.path += obs[i] - guard.col - 1
+
+				for j := guard.col + 1; j < obs[i]; j++ {
+					lab.marked[Visit{guard.row, j}] = mark
+				}
+
 				guard.col = obs[i] - 1
 				guard.dir = Down
 
 				return false
+			}
+
+			for i := guard.col + 1; i < maxCol; i++ {
+				lab.marked[Visit{guard.row, i}] = mark
 			}
 
 			return true
@@ -128,10 +142,19 @@ func (guard *Guard) walk(lab Lab) bool {
 
 				fmt.Println("hit obs:", obs[i], guard.col)
 				guard.path += obs[i] - guard.row - 1
+
+				for j := guard.row + 1; j < obs[i]; j++ {
+					lab.marked[Visit{j, guard.col}] = mark
+				}
+
 				guard.row = obs[i] - 1
 				guard.dir = Left
 
 				return false
+			}
+
+			for i := guard.row; i < maxRow; i++ {
+				lab.marked[Visit{i, guard.col}] = mark
 			}
 
 			return true
@@ -150,10 +173,19 @@ func (guard *Guard) walk(lab Lab) bool {
 
 				fmt.Println("hit obs:", guard.row, obs[i])
 				guard.path += guard.col - obs[i] - 1
+
+				for j := obs[i]; j < guard.col-1; j++ {
+					lab.marked[Visit{guard.row, j}] = mark
+				}
+
 				guard.col = obs[i] + 1
 				guard.dir = Up
 
 				return false
+			}
+
+			for i := 0; i < guard.col; i++ {
+				lab.marked[Visit{guard.row, i}] = mark
 			}
 
 			return true
@@ -193,6 +225,7 @@ func initialise(lines []string) (lab Lab, guard Guard) {
 			// find caret and starting direction up
 			if string(cell) == "^" {
 				guard = Guard{row: row, col: col, path: 1, dir: Up}
+				lab.marked[Visit{row, col}] = mark
 			}
 		}
 	}
