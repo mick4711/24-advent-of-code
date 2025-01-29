@@ -41,7 +41,7 @@ var (
 	mark   Mark
 )
 
-// TODO test with multiple obs in same row or col
+// TODO test with multiple obs in same row or col Ans 5148 too high
 func main() {
 	// set input file name
 	inputFileName := getInputFileName()
@@ -66,6 +66,24 @@ func getPathLength(file string) int {
 		}
 	}
 
+	colCount := make([]int, len(lines[0]))
+	rowCount := make([]int, len(lines))
+
+	for visit := range lab.marked {
+		row := visit.row
+		rowCount[row]++
+		col := visit.col
+		colCount[col]++
+	}
+
+	for c, v := range colCount {
+		fmt.Println("colCount:", c, v)
+	}
+
+	for r, v := range rowCount {
+		fmt.Println("rowCount:", r, v)
+	}
+
 	return len(lab.marked)
 }
 
@@ -78,7 +96,7 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs:", obs[i], guard.col)
+				fmt.Println("hit obs (R):", obs[i], guard.col)
 				guard.path += guard.row - obs[i] - 1
 
 				for j := obs[i] + 1; j < guard.row; j++ {
@@ -98,7 +116,11 @@ func (guard *Guard) walk(lab Lab) bool {
 			return true
 		}
 
-		return false
+		for i := 0; i < guard.row; i++ {
+			lab.marked[Visit{i, guard.col}] = mark
+		}
+
+		return true
 	}
 
 	if guard.dir == Right {
@@ -109,7 +131,7 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs:", guard.row, obs[i])
+				fmt.Println("hit obs (D):", guard.row, obs[i])
 				guard.path += obs[i] - guard.col - 1
 
 				for j := guard.col + 1; j < obs[i]; j++ {
@@ -129,7 +151,11 @@ func (guard *Guard) walk(lab Lab) bool {
 			return true
 		}
 
-		return false
+		for i := guard.col + 1; i < maxCol; i++ {
+			lab.marked[Visit{guard.row, i}] = mark
+		}
+
+		return true
 	}
 
 	if guard.dir == Down {
@@ -140,7 +166,7 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs:", obs[i], guard.col)
+				fmt.Println("hit obs (L):", obs[i], guard.col)
 				guard.path += obs[i] - guard.row - 1
 
 				for j := guard.row + 1; j < obs[i]; j++ {
@@ -160,7 +186,11 @@ func (guard *Guard) walk(lab Lab) bool {
 			return true
 		}
 
-		return false
+		for i := guard.row; i < maxRow; i++ {
+			lab.marked[Visit{i, guard.col}] = mark
+		}
+
+		return true
 	}
 
 	if guard.dir == Left {
@@ -171,7 +201,7 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs:", guard.row, obs[i])
+				fmt.Println("hit obs (U):", guard.row, obs[i])
 				guard.path += guard.col - obs[i] - 1
 
 				for j := obs[i]; j < guard.col-1; j++ {
@@ -191,15 +221,19 @@ func (guard *Guard) walk(lab Lab) bool {
 			return true
 		}
 
-		return false
+		for i := 0; i < guard.col; i++ {
+			lab.marked[Visit{guard.row, i}] = mark
+		}
+
+		return true
 	}
 
 	return true
 }
 
 func initialise(lines []string) (lab Lab, guard Guard) {
-	maxCol = len(lines)
-	maxRow = len(lines[0])
+	maxRow = len(lines)
+	maxCol = len(lines[0])
 	lab.obsRows = make(map[int][]int, maxCol)
 	lab.obsCols = make(map[int][]int, maxRow)
 	lab.marked = make(map[Visit]Mark, maxCol*maxRow)
