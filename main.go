@@ -84,6 +84,21 @@ func getPathLength(file string) int {
 		fmt.Println("rowCount:", r, v)
 	}
 
+	for i := 0; i < maxCol; i++ {
+		line := make([]byte, maxRow)
+
+		for j := 0; j < maxRow; j++ {
+			_, ok := lab.marked[Visit{i, j}]
+			if ok {
+				line[j] = 'X'
+			} else {
+				line[j] = ' '
+			}
+		}
+
+		fmt.Println("row:", i, string(line))
+	}
+
 	return len(lab.marked)
 }
 
