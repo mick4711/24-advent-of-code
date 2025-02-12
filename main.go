@@ -41,7 +41,6 @@ var (
 	mark   Mark
 )
 
-// TODO test with multiple obs in same row or col Ans 5148 too high
 func main() {
 	// set input file name
 	inputFileName := getInputFileName()
@@ -66,75 +65,49 @@ func getPathLength(file string) int {
 		}
 	}
 
-	colCount := make([]int, len(lines[0]))
-	rowCount := make([]int, len(lines))
-
-	for visit := range lab.marked {
-		row := visit.row
-		rowCount[row]++
-		col := visit.col
-		colCount[col]++
-	}
-
-	for c, v := range colCount {
-		fmt.Println("colCount:", c, v)
-	}
-
-	for r, v := range rowCount {
-		fmt.Println("rowCount:", r, v)
-	}
-
-	for i := 0; i < maxCol; i++ {
-		line := make([]byte, maxRow)
-
-		for j := 0; j < maxRow; j++ {
-			_, ok := lab.marked[Visit{i, j}]
-			if ok {
-				line[j] = 'X'
-			} else {
-				line[j] = ' '
-			}
-		}
-
-		fmt.Println("row:", i, string(line))
-	}
-
 	return len(lab.marked)
 }
 
 func (guard *Guard) walk(lab Lab) bool {
 	if guard.dir == Up {
+		// get obstacles in the upward column
 		obs, ok := lab.obsCols[guard.col]
+		// obstacles found
 		if ok {
+			// reverse iterate through the ordered row obstacle row vals for this col
 			for i := len(obs) - 1; i >= 0; i-- {
+				// if the row is below our current position, skip it
 				if obs[i] >= guard.row {
 					continue
 				}
-
-				fmt.Println("hit obs (R):", obs[i], guard.col)
+				// we've got the next obstacle above current pos, get the distance
 				guard.path += guard.row - obs[i] - 1
 
+				// mark the path elements
 				for j := obs[i] + 1; j < guard.row; j++ {
 					lab.marked[Visit{j, guard.col}] = mark
 				}
 
+				// update guards new row and new direction
 				guard.row = obs[i] + 1
 				guard.dir = Right
 
+				// not finished
 				return false
 			}
-
+			// no obstacles above our current position, mark all rows in current upwards to 0
 			for i := 0; i < guard.row; i++ {
 				lab.marked[Visit{i, guard.col}] = mark
 			}
-
+			// reached top exit lab
 			return true
 		}
-
+		// no obstacles found, mark all rows in current upwards to 0
 		for i := 0; i < guard.row; i++ {
 			lab.marked[Visit{i, guard.col}] = mark
 		}
 
+		// reached top exit lab
 		return true
 	}
 
@@ -146,7 +119,6 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs (D):", guard.row, obs[i])
 				guard.path += obs[i] - guard.col - 1
 
 				for j := guard.col + 1; j < obs[i]; j++ {
@@ -181,7 +153,6 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs (L):", obs[i], guard.col)
 				guard.path += obs[i] - guard.row - 1
 
 				for j := guard.row + 1; j < obs[i]; j++ {
@@ -216,10 +187,9 @@ func (guard *Guard) walk(lab Lab) bool {
 					continue
 				}
 
-				fmt.Println("hit obs (U):", guard.row, obs[i])
 				guard.path += guard.col - obs[i] - 1
 
-				for j := obs[i]; j < guard.col-1; j++ {
+				for j := obs[i] + 1; j < guard.col; j++ {
 					lab.marked[Visit{guard.row, j}] = mark
 				}
 
@@ -255,6 +225,9 @@ func initialise(lines []string) (lab Lab, guard Guard) {
 
 	for row, line := range lines {
 		for col, cell := range line {
+			// populate row and col obstacle slices with col & row vals in sequence
+			// we get a slice of obstacles (col value) in each row in col sequence
+			// and a slice of obstacles (row value) in each col in row sequence
 			if string(cell) == "#" {
 				_, ok := lab.obsRows[row]
 				if !ok {
