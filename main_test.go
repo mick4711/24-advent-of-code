@@ -8,10 +8,13 @@ import (
 
 func TestGetPathLength(t *testing.T) {
 	tests := []struct {
-		file string
-		want int
+		name       string
+		file       string
+		wantLength int
+		wantNewObs int
 	}{
-		{ // example
+		{
+			"example",
 			`....#.....
 .........#
 ..........
@@ -21,34 +24,42 @@ func TestGetPathLength(t *testing.T) {
 .#..^.....
 ........#.
 #.........
-......#...`, 41,
+......#...`, 41, 6,
 		},
-		{ // 1 turn
+		{
+			"1 turn",
 			`#....
 .....
 .....
 .....
-^....`, 8,
+^....`, 8, 0,
 		},
-		{ // 2 turns
+		{
+			"2 turns",
 			`#....
 ....#
 .....
 .....
-^....`, 10},
-		{ // 3 turns
+^....`, 10, 0,
+		},
+		{
+			"3 turns",
 			`#....
 ....#
 .....
 .....
-^..#.`, 11},
-		{ // 4 turns
+^..#.`, 11, 0,
+		},
+		{
+			"4 turns",
 			`#....
 ....#
 .....
 .#...
-^..#.`, 12},
-		{ // multiple obstacles
+^..#.`, 12, 0,
+		},
+		{
+			"multiple obstacles",
 			`..........
 ....#.....
 .#......#.
@@ -58,25 +69,34 @@ func TestGetPathLength(t *testing.T) {
 .........#
 ..........
 .^.#......
-........#.`, 38},
-		{ // bounce back
+........#.`, 38, 0,
+		},
+		{
+			"bounce back",
 			`#....
 .#...
 .....
 .....
-^....`, 4},
-		{ // bounce back after turn
+^....`, 4, 0,
+		},
+		{
+			"bounce back after turn",
 			`#....
 ....#
 ...#.
 .....
-^....`, 7},
+^....`, 7, 0,
+		},
 	}
 
 	for _, test := range tests {
-		got := getPathLength(test.file)
-		if got != test.want {
-			t.Errorf("getPathLength(), got:%v, want:%v", got, test.want)
+		gotLength, gotNewObs := getPathLength(test.file)
+		if gotLength != test.wantLength {
+			t.Errorf("getPathLength() length, %v got:%v, want:%v", test.name, gotLength, test.wantLength)
+		}
+
+		if gotNewObs != test.wantNewObs {
+			t.Errorf("getPathLength() new obs, %v got:%v, want:%v", test.name, gotNewObs, test.wantNewObs)
 		}
 	}
 }
@@ -173,6 +193,48 @@ func TestNewObstacle(t *testing.T) {
 			},
 			want: Lab{
 				obsHits: []ObsHit{{row: 3, col: 4, dir: Right}, {row: 0, col: 0, dir: Up}},
+				newObs:  1,
+			},
+		},
+		{
+			direction: "Right",
+			guard:     Guard{row: 3, col: 0, path: 1, dir: Right},
+			lab: Lab{
+				obsRows: map[int][]int{6: {2}, 3: {4}},
+				obsCols: map[int][]int{2: {6}, 4: {3}},
+				marked:  map[Visit]Mark{{3, 0}: mark},
+				obsHits: []ObsHit{{row: 6, col: 2, dir: Down}},
+			},
+			want: Lab{
+				obsHits: []ObsHit{{row: 6, col: 2, dir: Down}, {row: 3, col: 4, dir: Right}},
+				newObs:  1,
+			},
+		},
+		{
+			direction: "Down",
+			guard:     Guard{row: 0, col: 4, path: 1, dir: Down},
+			lab: Lab{
+				obsRows: map[int][]int{6: {4}, 4: {1}},
+				obsCols: map[int][]int{1: {4}, 4: {6}},
+				marked:  map[Visit]Mark{{0, 4}: mark},
+				obsHits: []ObsHit{{row: 4, col: 1, dir: Left}},
+			},
+			want: Lab{
+				obsHits: []ObsHit{{row: 4, col: 1, dir: Left}, {row: 6, col: 4, dir: Down}},
+				newObs:  1,
+			},
+		},
+		{
+			direction: "Left",
+			guard:     Guard{row: 6, col: 4, path: 1, dir: Left},
+			lab: Lab{
+				obsRows: map[int][]int{6: {0}, 0: {2}},
+				obsCols: map[int][]int{0: {6}, 2: {0}},
+				marked:  map[Visit]Mark{{6, 4}: mark},
+				obsHits: []ObsHit{{row: 0, col: 2, dir: Up}},
+			},
+			want: Lab{
+				obsHits: []ObsHit{{row: 0, col: 2, dir: Up}, {row: 6, col: 0, dir: Left}},
 				newObs:  1,
 			},
 		},
