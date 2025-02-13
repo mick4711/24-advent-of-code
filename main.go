@@ -242,8 +242,11 @@ func checkNewObs(lab *Lab, currRow int, guard *Guard) {
 	}
 }
 
-func initialise(lines []string) (lab Lab, guard Guard) {
-	// TODO replace named return params with var declarations
+func initialise(lines []string) (Lab, Guard) {
+	var lab Lab
+
+	var guard Guard
+
 	maxRow = len(lines)
 	maxCol = len(lines[0])
 	lab.obsRows = make(map[int][]int, maxCol)
