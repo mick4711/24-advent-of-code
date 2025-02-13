@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -20,11 +21,18 @@ type (
 		row int
 		col int
 	}
-	Mark interface{}
-	Lab  struct {
+	Mark   interface{}
+	ObsHit struct {
+		row int
+		col int
+		dir Dir
+	}
+	Lab struct {
 		obsRows map[int][]int
 		obsCols map[int][]int
 		marked  map[Visit]Mark
+		obsHits []ObsHit
+		newObs  int
 	}
 )
 
@@ -59,7 +67,7 @@ func getPathLength(file string) int {
 	lab, guard := initialise(lines)
 	// guard.walk finds obs in current dir, update row, col , path , dir, return finished as true or false
 	for {
-		finished := guard.walk(lab)
+		finished := guard.walk(&lab)
 		if finished {
 			break
 		}
@@ -68,7 +76,7 @@ func getPathLength(file string) int {
 	return len(lab.marked)
 }
 
-func (guard *Guard) walk(lab Lab) bool {
+func (guard *Guard) walk(lab *Lab) bool {
 	if guard.dir == Up {
 		// get obstacles in the upward column
 		obs, ok := lab.obsCols[guard.col]
@@ -86,9 +94,12 @@ func (guard *Guard) walk(lab Lab) bool {
 				// mark the path elements
 				for j := obs[i] + 1; j < guard.row; j++ {
 					lab.marked[Visit{j, guard.col}] = mark
+					// get 1st obstacle to the right in 1 below curr row
+					checkNewObs(lab, j+1, guard)
 				}
 
-				// update guards new row and new direction
+				// update obstacles hit, guards new row and new direction
+				lab.obsHits = append(lab.obsHits, ObsHit{row: obs[i], col: guard.col, dir: Up})
 				guard.row = obs[i] + 1
 				guard.dir = Right
 
@@ -216,12 +227,29 @@ func (guard *Guard) walk(lab Lab) bool {
 	return true
 }
 
+func checkNewObs(lab *Lab, currRow int, guard *Guard) {
+	obsRow, ok := lab.obsRows[currRow]
+	if ok {
+		for i := 0; i < len(obsRow); i++ {
+			if obsRow[i] < guard.col {
+				continue // to next obstruction in this row
+			}
+			// check if hit already in dir Right
+			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Right}) {
+				lab.newObs++
+			}
+		}
+	}
+}
+
 func initialise(lines []string) (lab Lab, guard Guard) {
+	// TODO replace named return params with var declarations
 	maxRow = len(lines)
 	maxCol = len(lines[0])
 	lab.obsRows = make(map[int][]int, maxCol)
 	lab.obsCols = make(map[int][]int, maxRow)
 	lab.marked = make(map[Visit]Mark, maxCol*maxRow)
+	lab.obsHits = []ObsHit{}
 
 	for row, line := range lines {
 		for col, cell := range line {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"maps"
+	"slices"
 	"testing"
 )
 
@@ -142,7 +143,7 @@ func TestGuardWalk(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.guard.walk(test.lab)
+		test.guard.walk(&test.lab)
 
 		if !maps.Equal(test.lab.marked, test.want.marked) {
 			t.Errorf("guard.walk, got:%v, want:%v", test.lab.marked, test.want.marked)
@@ -150,6 +151,41 @@ func TestGuardWalk(t *testing.T) {
 
 		if test.guard != test.want.guard {
 			t.Errorf("guard.walk, got:%v, want:%v", test.guard, test.want.guard)
+		}
+	}
+}
+
+func TestNewObstacle(t *testing.T) {
+	tests := []struct {
+		direction string
+		guard     Guard
+		lab       Lab
+		want      Lab
+	}{
+		{
+			direction: "Up",
+			guard:     Guard{row: 6, col: 0, path: 1, dir: Up},
+			lab: Lab{
+				obsRows: map[int][]int{0: {0}, 3: {4}},
+				obsCols: map[int][]int{0: {0}, 4: {3}},
+				marked:  map[Visit]Mark{{6, 0}: mark},
+				obsHits: []ObsHit{{row: 3, col: 4, dir: Right}},
+			},
+			want: Lab{
+				obsHits: []ObsHit{{row: 3, col: 4, dir: Right}, {row: 0, col: 0, dir: Up}},
+				newObs:  1,
+			},
+		},
+	}
+	for _, test := range tests {
+		test.guard.walk(&test.lab)
+
+		if test.lab.newObs != test.want.newObs {
+			t.Errorf("new obstruction found, dir = %v: got:%v, want:%v", test.direction, test.lab.newObs, test.want.newObs)
+		}
+
+		if !slices.Contains(test.lab.obsHits, test.want.obsHits[1]) {
+			t.Errorf("new obstruction hit added, dir = %v: got:%v, want:%v", test.direction, test.lab.obsHits, test.want.obsHits)
 		}
 	}
 }
