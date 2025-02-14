@@ -274,8 +274,7 @@ func checkNewObsRight(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Right}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
-					// TODO use new obs cell instead of existing obs cell
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow, obsRow[i], "Right")
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow-1, guard.col, "Up")
 				}
 			}
 		}
@@ -293,7 +292,7 @@ func checkNewObsDown(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Down}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, obsCol[i], currCol, "Down")
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, guard.row, currCol+1, "Right")
 				}
 			}
 		}
@@ -311,7 +310,7 @@ func checkNewObsLeft(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Left}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow, obsRow[i], "Left")
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow+1, guard.col, "Down")
 				}
 			}
 		}
@@ -329,7 +328,7 @@ func checkNewObsUp(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Up}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, obsCol[i], currCol, "Up")
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, guard.row, currCol-1, "Left")
 				}
 			}
 		}
@@ -397,3 +396,14 @@ func getInputFileName() string {
 
 	return inputFile
 }
+
+// TODO figure out why obs #6 is happening
+/*
+new obs #1 @ row:6 col3 dir:Left
+new obs #2 @ row:7 col6 dir:Down
+new obs #3 @ row:8 col1 dir:Left
+new obs #4 @ row:8 col3 dir:Left
+new obs #5 @ row:7 col7 dir:Right
+new obs #6 @ row:7 col7 dir:Down <-- ** Wrong **
+new obs #7 @ row:9 col7 dir:Down
+*/
