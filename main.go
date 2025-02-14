@@ -33,6 +33,7 @@ type (
 		marked  map[Visit]Mark
 		obsHits []ObsHit
 		newObs  int
+		start   Visit
 	}
 )
 
@@ -116,6 +117,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 		// no obstacles found, mark all rows in current upwards to 0
 		for i := 0; i < guard.row; i++ {
 			lab.marked[Visit{i, guard.col}] = mark
+			// get 1st obstacle to the right in 1 below curr row
+			checkNewObsRight(lab, i+1, guard)
 		}
 		// reached top exit lab
 		return true
@@ -152,6 +155,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles right of our current position, mark all cols in current right to end
 			for i := guard.col + 1; i < maxCol; i++ {
 				lab.marked[Visit{guard.row, i}] = mark
+				// get 1st obstacle below in 1 to left of curr col
+				checkNewObsDown(lab, i-1, guard)
 			}
 			// reached right edge exit lab
 			return true
@@ -196,6 +201,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles below our current position, mark all rows in current downward to bottom
 			for i := guard.row; i < maxRow; i++ {
 				lab.marked[Visit{i, guard.col}] = mark
+				// get 1st obstacle to the left in 1 above curr row
+				checkNewObsLeft(lab, i-1, guard)
 			}
 			// reached bottom exit lab
 			return true
@@ -239,6 +246,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles left of our current position, mark all cols in current left to end
 			for i := 0; i < guard.col; i++ {
 				lab.marked[Visit{guard.row, i}] = mark
+				// get 1st obstacle above in 1 to right of curr col
+				checkNewObsUp(lab, i+1, guard)
 			}
 			// reached left edge exit lab
 			return true
@@ -263,7 +272,9 @@ func checkNewObsRight(lab *Lab, currRow int, guard *Guard) {
 			}
 			// check if hit already in dir Right
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Right}) {
-				lab.newObs++
+				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
+					lab.newObs++
+				}
 			}
 		}
 	}
@@ -278,7 +289,9 @@ func checkNewObsDown(lab *Lab, currCol int, guard *Guard) {
 			}
 			// check if hit already in dir Down
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Down}) {
-				lab.newObs++
+				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
+					lab.newObs++
+				}
 			}
 		}
 	}
@@ -293,7 +306,9 @@ func checkNewObsLeft(lab *Lab, currRow int, guard *Guard) {
 			}
 			// check if hit already in dir Left
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Left}) {
-				lab.newObs++
+				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
+					lab.newObs++
+				}
 			}
 		}
 	}
@@ -308,7 +323,9 @@ func checkNewObsUp(lab *Lab, currCol int, guard *Guard) {
 			}
 			// check if hit already in dir Up
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Up}) {
-				lab.newObs++
+				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
+					lab.newObs++
+				}
 			}
 		}
 	}
@@ -351,6 +368,7 @@ func initialise(lines []string) (Lab, Guard) {
 			if string(cell) == "^" {
 				guard = Guard{row: row, col: col, path: 1, dir: Up}
 				lab.marked[Visit{row, col}] = mark
+				lab.start = Visit{row, col}
 			}
 		}
 	}
