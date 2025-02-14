@@ -274,6 +274,8 @@ func checkNewObsRight(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Right}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
+					// TODO use new obs cell instead of existing obs cell
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow, obsRow[i], "Right")
 				}
 			}
 		}
@@ -291,6 +293,7 @@ func checkNewObsDown(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Down}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, obsCol[i], currCol, "Down")
 				}
 			}
 		}
@@ -308,6 +311,7 @@ func checkNewObsLeft(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Left}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow, obsRow[i], "Left")
 				}
 			}
 		}
@@ -325,6 +329,7 @@ func checkNewObsUp(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Up}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
+					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, obsCol[i], currCol, "Up")
 				}
 			}
 		}
