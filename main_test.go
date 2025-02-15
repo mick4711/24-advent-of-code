@@ -56,7 +56,7 @@ func TestGetPathLength(t *testing.T) {
 ....#
 .....
 .#...
-^..#.`, 12, 0,
+^..#.`, 12, 1,
 		},
 		{
 			"multiple obstacles",
@@ -69,7 +69,7 @@ func TestGetPathLength(t *testing.T) {
 .........#
 ..........
 .^.#......
-........#.`, 38, 0,
+........#.`, 38, 4,
 		},
 		{
 			"bounce back",

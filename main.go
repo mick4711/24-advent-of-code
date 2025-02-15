@@ -110,6 +110,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles above our current position, mark all rows in current upwards to 0
 			for i := 0; i < guard.row; i++ {
 				lab.marked[Visit{i, guard.col}] = mark
+				// get 1st obstacle to the right above curr row
+				checkNewObsRight(lab, i, guard)
 			}
 			// reached top exit lab
 			return true
@@ -117,8 +119,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 		// no obstacles found, mark all rows in current upwards to 0
 		for i := 0; i < guard.row; i++ {
 			lab.marked[Visit{i, guard.col}] = mark
-			// get 1st obstacle to the right in 1 below curr row
-			checkNewObsRight(lab, i+1, guard)
+			// get 1st obstacle to the right above curr row
+			checkNewObsRight(lab, i, guard)
 		}
 		// reached top exit lab
 		return true
@@ -155,8 +157,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles right of our current position, mark all cols in current right to end
 			for i := guard.col + 1; i < maxCol; i++ {
 				lab.marked[Visit{guard.row, i}] = mark
-				// get 1st obstacle below in 1 to left of curr col
-				checkNewObsDown(lab, i-1, guard)
+				// get 1st obstacle below curr col
+				checkNewObsDown(lab, i, guard)
 			}
 			// reached right edge exit lab
 			return true
@@ -164,6 +166,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 		// no obstacles found, mark all cols in current right to end
 		for i := guard.col + 1; i < maxCol; i++ {
 			lab.marked[Visit{guard.row, i}] = mark
+			// get 1st obstacle below curr col
+			checkNewObsDown(lab, i, guard)
 		}
 		// reached right edge exit lab
 		return true
@@ -201,8 +205,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles below our current position, mark all rows in current downward to bottom
 			for i := guard.row; i < maxRow; i++ {
 				lab.marked[Visit{i, guard.col}] = mark
-				// get 1st obstacle to the left in 1 above curr row
-				checkNewObsLeft(lab, i-1, guard)
+				// get 1st obstacle to the left in 1 below curr row
+				checkNewObsLeft(lab, i+1, guard)
 			}
 			// reached bottom exit lab
 			return true
@@ -210,6 +214,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 		// no obstacles found, mark all rows in current downward to end
 		for i := guard.row; i < maxRow; i++ {
 			lab.marked[Visit{i, guard.col}] = mark
+			// get 1st obstacle to the left in 1 below curr row
+			checkNewObsLeft(lab, i+1, guard)
 		}
 		// reached bottom exit lab
 		return true
@@ -246,7 +252,7 @@ func (guard *Guard) walk(lab *Lab) bool {
 			// no obstacles left of our current position, mark all cols in current left to end
 			for i := 0; i < guard.col; i++ {
 				lab.marked[Visit{guard.row, i}] = mark
-				// get 1st obstacle above in 1 to right of curr col
+				// get 1st obstacle above incurr col
 				checkNewObsUp(lab, i+1, guard)
 			}
 			// reached left edge exit lab
@@ -255,6 +261,8 @@ func (guard *Guard) walk(lab *Lab) bool {
 		// no obstacles found, mark all cols in current left to end
 		for i := 0; i < guard.col; i++ {
 			lab.marked[Visit{guard.row, i}] = mark
+			// get 1st obstacle above in curr col
+			checkNewObsUp(lab, i+1, guard)
 		}
 		// reached left edge exit lab
 		return true
@@ -274,7 +282,8 @@ func checkNewObsRight(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Right}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow-1, guard.col, "Up")
+					// DEBUG
+					fmt.Printf("new obs #%-4d @ row:%3d col:%3d dir:%v\n", lab.newObs, currRow-1, guard.col, "U")
 				}
 			}
 		}
@@ -292,7 +301,8 @@ func checkNewObsDown(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Down}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, guard.row, currCol+1, "Right")
+					// DEBUG
+					fmt.Printf("new obs #%-4d @ row:%3d col:%3d dir:%v\n", lab.newObs, guard.row, currCol+1, "R")
 				}
 			}
 		}
@@ -310,7 +320,8 @@ func checkNewObsLeft(lab *Lab, currRow int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: currRow, col: obsRow[i], dir: Left}) {
 				if !(lab.start.row == currRow && lab.start.col == obsRow[i]) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, currRow+1, guard.col, "Down")
+					// DEBUG
+					fmt.Printf("new obs #%-4d @ row:%3d col:%3d dir:%v\n", lab.newObs, currRow+1, guard.col, "D")
 				}
 			}
 		}
@@ -328,7 +339,8 @@ func checkNewObsUp(lab *Lab, currCol int, guard *Guard) {
 			if slices.Contains(lab.obsHits, ObsHit{row: obsCol[i], col: currCol, dir: Up}) {
 				if !(lab.start.row == obsCol[i] && lab.start.col == currCol) {
 					lab.newObs++
-					fmt.Printf("new obs #%v @ row:%v col%v dir:%v\n", lab.newObs, guard.row, currCol-1, "Left")
+					// DEBUG
+					fmt.Printf("new obs #%-4d @ row:%3d col:%3d dir:%v\n", lab.newObs, guard.row, currCol-1, "L")
 				}
 			}
 		}
@@ -396,14 +408,3 @@ func getInputFileName() string {
 
 	return inputFile
 }
-
-// TODO figure out why obs #6 is happening
-/*
-new obs #1 @ row:6 col3 dir:Left
-new obs #2 @ row:7 col6 dir:Down
-new obs #3 @ row:8 col1 dir:Left
-new obs #4 @ row:8 col3 dir:Left
-new obs #5 @ row:7 col7 dir:Right
-new obs #6 @ row:7 col7 dir:Down <-- ** Wrong **
-new obs #7 @ row:9 col7 dir:Down
-*/
